@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <title>Spring Security Example</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-..." crossorigin="anonymous">
+
+</head>
+<body>
+
+    <div class="container-fluid ">
+        <!--    Верхняя панель -->
+        <div class="d-flex text-white bg-dark align-content-center p-2" >
+            <div class="p-2 w-100 " >
+                <span th:text="${userAuth.username}" style="font-weight: bold;">Name</span>
+                with role:
+                <span th:each="role : ${userAuth.roles}" th:text="${#strings.substring(role.name, 5)} + ' '">Role</span>
+            </div>
+
+            <div class="p-1 flex-shrink-1">
+                <form th:action="@{/logout}" method="post" style="padding-top: 0;">
+                    <button type="submit" class="btn btn-secondary p-0" >Logout</button>
+                </form>
+            </div>
+        </div>
+
+
+        <div class="row no-gutters">
+<!--            Боковая панель-->
+            <div class="col-3 col-md-2">
+                <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <a th:each="role : ${userAuth.roles}"
+                       th:with="roleUrl=@{{roleName}(roleName=${#strings.toLowerCase(#strings.substring(role.name, 5))})}"
+                       th:href="${roleUrl}"
+                       th:classappend="${currentUrl.matches('.*' + #strings.toLowerCase(#strings.substring(role.name, 5)) + '.*') ? 'active' : ''}"
+                       class="nav-link "
+                       role="tab">
+                        <span th:text="${#strings.toLowerCase(#strings.substring(role.name, 5))}">Role</span>
+                    </a>
+                </div>
+            </div>
+
+<!--            User info-->
+            <div class="col-12 col-sm-6 col-md-8 " style="">
+                <h1 class="p-2 m-0">User information page</h1>
+                <div id="userTable" class="table table-striped mt-6" style="display: compact">
+                    <h2 class="shadow-sm p-3 mb-0 bg-light rounded">About user</h2>
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th>
+                            <th>Last Name</th>
+                            <th>Role</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td th:text="${userAuth.getId()}"></td>
+                            <td th:text="${userAuth.getUsername()}"></td>
+                            <td th:text="${userAuth.getLastName()}"></td>
+                            <td>
+                                <span th:each="role : ${userAuth.roles}" th:text="${#strings.substring(role.name, 5)} + ' '">Role</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+            </div>
+
+
+
+        </div>
+
+
+<!--        <h1>Страница пользователя</h1>-->
+
+<!--        <p>Ваш ID: <span th:text="${user.id}">ID</span></p>-->
+<!--        <p>Имя: <span th:text="${user.username}"></span></p>-->
+<!--        <p>Фамилия: <span th:text="${user.lastName}"></span></p>-->
+
+<!--        <form th:action="@{/logout}" method="post">-->
+<!--            <button type="submit">Logout</button>-->
+<!--        </form>-->
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-..." crossorigin="anonymous"></script>
+
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Страница Админа</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container-fluid">
+<!--    Верхняя панель -->
+    <div class="d-flex text-white bg-dark align-content-center p-2" >
+        <div class="p-2 w-100 " >
+            <span th:text="${userAuth.username}" style="font-weight: bold;">Name</span>
+            with role:
+            <span th:each="role : ${userAuth.roles}" th:text="${#strings.substring(role.name, 5)} + ' '">Role</span>
+        </div>
+
+        <div class="p-1 flex-shrink-1">
+            <form th:action="@{/logout}" method="post" style="padding-top: 0;">
+                <button type="submit" class="btn btn-secondary p-0" >Logout</button>
+            </form>
+        </div>
+    </div>
+
+
+<!--    Боковая панель -->
+    <div class="row no-gutters">
+        <div class="col-3 col-md-2">
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a th:each="role : ${userAuth.roles}"
+                   th:with="roleUrl=@{{roleName}(roleName=${#strings.toLowerCase(#strings.substring(role.name, 5))})}"
+                   th:href="${roleUrl}"
+                   th:classappend="${currentUrl.matches('.*' + #strings.toLowerCase(#strings.substring(role.name, 5)) + '.*') ? 'active' : ''}"
+                   class="nav-link "
+                   role="tab">
+                    <span th:text="${#strings.toLowerCase(#strings.substring(role.name, 5))}">Role</span>
+                </a>
+            </div>
+        </div>
+
+<!-- Admin panel -->
+        <div class="col-12 col-sm-6 col-md-8" style="">
+            <h1 class="p-2 m-0">Admin panel</h1>
+
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showTable()" id="showTableLink">Users Table</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showAddUserForm()" id="showAddUserLink">New User</a>
+                </li>
+            </ul>
+
+            <!-- Таблица пользователей -->
+            <div id="userTable" class="mt-3" style="display: compact">
+                <h2 class="shadow-sm p-3 mb-0 bg-light rounded">All Users</h2>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Last Name</th>
+                        <th>Role</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user : ${allUsers}">
+                        <td th:text="${user.getId()}"></td>
+                        <td th:text="${user.getUsername()}"></td>
+                        <td th:text="${user.getLastName()}"></td>
+                        <td>
+                            <span th:each="role : ${user.roles}" th:text="${#strings.substring(role.name, 5)} + ' '">Role</span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal"
+                                    th:attr="data-user-id=${user.getId()}, data-user-name=${user.getUsername()},
+                                     data-user-lastname=${user.getLastName()}, data-user-password=${user.getPassword()},
+                                     data-user-roles=${user.roles}">
+                                Edit
+                            </button>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal"
+                                    th:attr="data-user-id=${user.getId()}, data-user-name=${user.getUsername()},
+                                     data-user-lastname=${user.getLastName()}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Модальное окно для редактирования пользователя -->
+            <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form th:method="POST" th:action="@{/admin}" id="editUserForm">
+                                <input type="hidden" name="id" id="editUserId">
+                                <div class="mb-3">
+                                    <label for="editName" class="form-label">Name</label>
+                                    <input type="text" name="username" id="editName" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editLastName" class="form-label">Last Name</label>
+                                    <input type="text" name="lastName" id="editLastName" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editPassword" class="form-label">Password</label>
+                                    <input type="password" name="password" id="editPassword" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editRoles" class="form-label">Role</label>
+                                    <select multiple name="roles" id="editRoles" class="form-control">
+                                        <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
+                                    </select>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Модальное окно для удаления пользователя -->
+            <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteUserModalLabel">Delete User</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form th:method="POST" th:action="@{/admin/delete}" id="deleteUserForm">
+                                <div class="mb-3">
+                                    <label for="deleteUserId" class="form-label">Id</label>
+                                    <input type="text" name="id" id="deleteUserId" class="form-control" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="deleteName" class="form-label">Name</label>
+                                    <input type="text" id="deleteName" class="form-control" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="deleteLastName" class="form-label">Last Name</label>
+                                    <input type="text" id="deleteLastName" class="form-control" readonly>
+                                </div>
+<!--                                <div class="mb-3">-->
+<!--                                    <label for="deletePassword" class="form-label">Password</label>-->
+<!--                                    <input type="text" id="deletePassword" class="form-control" readonly>-->
+<!--                                </div>-->
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger" th:onclick="'window.location.href=\'/admin''\';'"> Confirm Delete</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма добавления пользователя -->
+            <div id="addUser" class="mt-3" style="display: none;">
+                <h2 class="shadow-none p-3 mb-0 bg-light rounded">Add New User</h2>
+                <div class="d-flex justify-content-center align-items-center">
+                    <form th:method="POST" th:action="@{/admin}" th:object="${user}" style="width: 400px;">
+                        <input type="hidden" th:field="*{id}">
+                        <div class="form-group mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" th:field="*{username}" class="form-control" id="name">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="lastname" class="form-label">Last Name</label>
+                            <input type="text" th:field="*{lastName}" id="lastname" class="form-control">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" th:field="*{password}" id="password" class="form-control">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="roles" class="form-label">Role</label>
+                            <select multiple th:field="*{roles}" id="roles" class="form-control" style="height: 60px">
+                                <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
+                            </select>
+                        </div>
+                        <div class="text-center">
+                            <input type="submit" value="Add new user" class="btn btn-success"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Скрипт для заполнения данных в модальных окнах -->
+            <script>
+                const editUserModal = document.getElementById('editUserModal');
+                editUserModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const userId = button.getAttribute('data-user-id');
+                    const userName = button.getAttribute('data-user-name');
+                    const userLastName = button.getAttribute('data-user-lastname');
+                    const userPassword = button.getAttribute('data-user-password');
+                    const userRoles = button.getAttribute('data-user-roles').split(',');
+
+                    document.getElementById('editUserId').value = userId;
+                    document.getElementById('editName').value = userName;
+                    document.getElementById('editLastName').value = userLastName;
+                    document.getElementById('editPassword').value = userPassword;
+
+                    const rolesSelect = document.getElementById('editRoles');
+                    Array.from(rolesSelect.options).forEach(option => option.selected = false);
+
+                    userRoles.forEach(roleId => {
+                        const option = Array.from(rolesSelect.options).find(opt => opt.value === roleId.trim());
+                        if (option) option.selected = true;
+                    });
+                });
+
+                const deleteUserModal = document.getElementById('deleteUserModal');
+                deleteUserModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const userId = button.getAttribute('data-user-id');
+                    const userName = button.getAttribute('data-user-name');
+                    const userLastName = button.getAttribute('data-user-lastname');
+                    // const userPassword = button.getAttribute("data-user-password");
+
+                    document.getElementById('deleteUserId').value = userId;
+                    document.getElementById('deleteName').value = userName;
+                    document.getElementById('deleteLastName').value = userLastName;
+                    document.getElementById('deletePassword').value = userPassword;
+                });
+
+                function showTable() {
+                    document.getElementById("userTable").style.display = "block";
+                    document.getElementById("addUser").style.display = "none";
+                }
+
+                function showAddUserForm() {
+                    document.getElementById("userTable").style.display = "none";
+                    document.getElementById("addUser").style.display = "block";
+                }
+            </script>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
